@@ -1,0 +1,12 @@
+## Interface: 20501
+## Title: |cff00FF00TM |cffff00ffDeath Tracker|r
+## Author: Avael
+## Version: 0.0.1
+## Notes: & Twisted &
+## SavedVariables: TMDT_Options, TMDT_DB
+
+init.lua
+TMDT_Core.lua
+TMDT_Alias.lua
+TMDT_Sounds.lua
+TMDT_Slash.lua
