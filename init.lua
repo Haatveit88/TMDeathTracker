@@ -15,7 +15,7 @@ local format = string.format
 
 -- TMDT locals
 local addonMsgPrefix = "TMDTMsg"
-local handlers = {}
+local eventHandlers = {}
 local options = {}
 local db = {}
 
@@ -35,8 +35,8 @@ local function verifyOptions()
     end
 end
 
--- event handlers
-function handlers.ADDON_LOADED(self, ...)
+-- handle addon load complete
+function eventHandlers.ADDON_LOADED(self, ...)
     if ... == addonName then
         frame:UnregisterEvent("ADDON_LOADED")
 
@@ -67,28 +67,16 @@ function handlers.ADDON_LOADED(self, ...)
     end
 end
 
-function handlers.PLAYER_DEAD()
-    local player = UnitName("player")
-    if tmdt.isTMCharacter(player) then
-        --print(format("%s died", player))
-        tmdt.play(player)
-    end
-end
-
-function handlers.PLAYER_ENTERING_WORLD()
-
-end
-
 -- hook up events to handlers
 frame:SetScript("OnEvent", function(self, event, ...)
-    if handlers[event] then
-        handlers[event](self, ...)
+    if eventHandlers[event] then
+        eventHandlers[event](self, ...)
     end
 end)
 
 -- export some stuff to addon namespace
 tmdt.addonMsgPrefix = addonMsgPrefix
-tmdt.handlers = handlers
+tmdt.eventHandlers = eventHandlers
 tmdt.frame = frame
 tmdt.options = options
 tmdt.db = db

@@ -14,6 +14,7 @@ local format = string.format
 
 -- tmdt locals
 local addonMsgPrefix = tmdt.addonMsgPrefix
+local eventHandlers = tmdt.eventHandlers
 
 local colors = {
     tmg = "|cff00af00",
@@ -62,5 +63,21 @@ local function broadcast(msg, channel, target)
         C_ChatInfo.SendAddonMessage(addonMsgPrefix, msg, addonMessageChannels[channel], target)
     else
         tmdt.addonPrint(format("|cffff0000Error:|r Tried to use invalid AddonCommsChannel '%s'", channel))
+    end
+end
+
+function eventHandlers.PLAYER_DEAD()
+    local player = UnitName("player")
+    if tmdt.isTMCharacter(player) then
+        --print(format("%s died", player))
+        local msg = player .. " died."
+
+        broadcast(msg, addonMessageChannels.GUILD)
+    end
+end
+
+function eventHandlers.CHAT_MSG_ADDON(prefix, message, channel, sender, target, _, localId, channelName, _)
+    if prefix == addonMsgPrefix then
+        print(table.concat({message, channel, sender, target, channelName}, ", "))
     end
 end

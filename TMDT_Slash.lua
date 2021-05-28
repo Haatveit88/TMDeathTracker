@@ -13,6 +13,7 @@ end
 local addonPrint = tmdt.addonPrint
 local play = tmdt.play
 local firstToUpper = tmdt.firstToUpper
+local commandAlias
 
 -- localise lua stuff
 local format = string.format
@@ -45,8 +46,48 @@ end
 SLASH_TMDT1 = "/tmdt"
 
 -- holds all the final command handlers
-local handler = {}
-handler.testPlay = {
+local handlers = {}
+handlers.help = {
+    command = function()
+        addonPrint("Valid commands for TMDT are;")
+
+        for label, cmd in pairs(handlers) do
+            local argHint = cmd.hint
+            local debug = ""
+            local desc = ""
+
+            -- add command aliases
+            local aliases = {}
+            for key, handler in pairs(commandAlias) do
+                if handler == cmd then
+                    aliases[#aliases+1] = key
+                end
+            end
+            local slashCmds = ("|cff00f000/%s|r "):format(table.concat(aliases, ", "))
+
+            -- add argument hint?
+            if argHint then
+                argHint = "|cffC0C0C0" .. argHint .. "|r"
+            end
+
+            -- add debug flag?
+            if cmd.debug then
+                if options.debug then
+                    debug = " |cffaf0000[DEBUG]|r "
+                end
+            end
+
+            -- add description
+            if cmd.description then
+                desc = "\n  > |cffC0FFFF"..cmd.description.."|r"
+            end
+
+            print(slashCmds .. argHint .. debug .. desc)
+        end
+    end
+}
+
+handlers.testPlay = {
     command = function()
         C_Timer.After(0.1, function()
             play("test")
@@ -59,34 +100,42 @@ handler.testPlay = {
         end)
     end,
 
-    debugOnly = true,
+    debug = true,
+
+    description = "Plays a triple wilhelm scream."
 }
 
-handler.toggleMute = {
+handlers.toggleMute = {
     command = function()
         options.muted = not options.muted
         local newState = options.muted and ("|cffff0000" .. "muted") or ("|cff00ff00" .. "unmuted")
         addonPrint(newState)
     end,
+
+    description = "Toggles muting TMDT."
 }
 
-handler.toggleSelf = {
+handlers.toggleSelf = {
     command = function()
         options.self = not options.self
         local newState = options.self and ("|cff00ff00" .. "enabled") or ("|cffff0000" .. "disabled")
         addonPrint("play on self " .. newState)
     end,
+
+    description = "Toggles muting your own death announces / sound effect."
 }
 
-handler.toggleDebug = {
+handlers.toggleDebug = {
     command = function()
         options.debug = not options.debug
         local newState = options.debug and ("|cff00ff00" .. "enabled") or ("|cffff0000" .. "disabled")
         addonPrint("debug is " .. newState)
     end,
+
+    description = "Toggles debugging mode (don't touch unless Av told you to)."
 }
 
-handler.setGetChannel = {
+handlers.setGetChannel = {
     command = function(args)
         if type(args[2]) == "string" then
             local channel = validChannels[strtrim(args[2])]
@@ -97,12 +146,15 @@ handler.setGetChannel = {
                 addonPrint(format("Invalid output channel '%s'! Must be one of: [%s]", args[2], validChannels()))
             end
         else
-            addonPrint("Current output channel is '" .. options.channel .. "'")
+            addonPrint("Current output channel is '" .. options.channel .. "'. Options are: " .. validChannels())
         end
     end,
+
+    description = "Sets which audio channel is used to play TMDT effects. If used with no arguments, shows current setting.",
+    hint = "<sound channel>",
 }
 
-handler.getAlts = {
+handlers.getAlts = {
     command = function(args)
         local main = strtrim(args[2])
 
@@ -117,9 +169,12 @@ handler.getAlts = {
             addonPrint(format("No known TM main characters called %s", firstToUpper(main)))
         end
     end,
+
+    description = "Lists all registered alts for a main character.",
+    hint = "<main name>"
 }
 
-handler.setAlt = {
+handlers.setAlt = {
     command = function(args)
         if args[2] then
             local main = strtrim(args[2])
@@ -148,9 +203,12 @@ handler.setAlt = {
             end
         end
     end,
+
+    description = "Add a new alt to a known main character. Death counters and sounds will then recognize that alt.",
+    hint = "<main name> <alt name>",
 }
 
-handler.removeAlt = {
+handlers.removeAlt = {
     command = function(args)
         local main = strtrim(args[2])
         local alt = strtrim(args[3])
@@ -182,9 +240,12 @@ handler.removeAlt = {
             addonPrint(format("No known TM main characters called %s, no alt removed", firstToUpper(main)))
         end
     end,
+
+    description = "Remove an alt from a known main. Only works for alts you added via /tmdt setalt",
+    hint = "<main name> <alt name>",
 }
 
-handler.queryName = {
+handlers.queryName = {
     command = function(args)
         if args[2] then
             local query = firstToUpper(args[2])
@@ -192,83 +253,75 @@ handler.queryName = {
             print(format("|cffaa0000tmdt debug:|r \"%s\" %s", query, mainCharacter and format("is a known TM character (main: \"%s\")", mainCharacter) or ("is NOT a known TM character")))
         end
     end,
+
+    description = "Check whether a character name is recognized in TMDT, searches all mains and alts.",
+    hint = "<name to query>",
 }
 
-handler.fakeDeathEvent = {
+handlers.fakeDeathEvent = {
     command = function(args)
         play(firstToUpper(args[2]))
         print("|cffaf0000Fake death: " .. args[2])
     end,
 
-    debugOnly = true,
+    debug = true,
+    description = "Play sound and show a notification as if <character> died. Does not increase death counter nor show for other people.",
+    hint = "<character name>"
 }
 
-handler.fakeSaelEvent = {
+handlers.fakeSaelEvent = {
     command = function()
         play("saelspecial")
     end,
 
-    debugOnly = true,
+    description = "Hmm. Mysterious.",
+    debug = true,
 }
 
-handler.wipeSettings = {
+handlers.wipeSettings = {
     command = function()
         addonPrint("Wiped settings & (extra) alt database")
         wipe(db.extraCharacters)
         wipe(TMDT_Options)
         tmdt.verifyOptions()
     end,
+
+    description = "Wipes out your TMDT settings and your custom alt database, if any.",
 }
 
-handler.help = {
+handlers.fakeAddonMessage = {
     command = function(args)
-        addonPrint("Valid commands for TMDT are;")
-        for label, cmd in pairs(handler) do
-            local str
-            local desc = ""
+    end,
 
-            if cmd.debugOnly then
-                if options.debug then
-                    str = "|cffaf0000[DEBUG] |cffaaaa00%s    %s"
-                end
-            else
-                str = "|cff00aa00%s    %s"
-            end
-
-            if str then
-                if cmd.description then
-                    desc = "|cff050505"..cmd.description.."|r"
-                end
-
-                print(format(str, label, desc))
-            end
-        end
-    end
+    debug = true,
+    description = "Broadcasts an arbitrary AddonMessage using the TMDT prefix.",
+    hint = "<raw message>",
 }
 
 -- picks the appropriate handler based on keywords / aliases
-local commandAlias = {
-    mute = handler.toggleMute,
-    self = handler.toggleSelf,
-    channel = handler.setGetChannel,
+commandAlias = {
+    mute = handlers.toggleMute,
+    self = handlers.toggleSelf,
+    channel = handlers.setGetChannel,
 
     -- character db stuff
-    setalt = handler.setAlt,
-    addalt = handler.setAlt,
-    alts = handler.getAlts,
-    listalts = handler.getAlts,
-    removealt = handler.removeAlt,
+    setalt = handlers.setAlt,
+    addalt = handlers.setAlt,
+    alts = handlers.getAlts,
+    listalts = handlers.getAlts,
+    removealt = handlers.removeAlt,
 
     -- misc
-    wipe = handler.wipeSettings,
-    help = handler.help,
+    wipe = handlers.wipeSettings,
+    help = handlers.help,
 
     -- debug-ish stuff
-    test = handler.testPlay,
-    query = handler.queryName,
-    fake = handler.fakeDeathEvent,
-    fakespecial = handler.fakeSaelEvent,
-    debug = handler.toggleDebug,
+    test = handlers.testPlay,
+    query = handlers.queryName,
+    fake = handlers.fakeDeathEvent,
+    fakespecial = handlers.fakeSaelEvent,
+    debug = handlers.toggleDebug,
+    fakemsg = handlers.fakeAddonMessage,
 }
 
 -- handlers incoming slash cmd and dispatches to handler if valid alias match can be made
