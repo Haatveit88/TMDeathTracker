@@ -10,3 +10,4 @@ TMDT_Core.lua
 TMDT_Alias.lua
 TMDT_Sounds.lua
 TMDT_Slash.lua
+TMDT_Event.lua
