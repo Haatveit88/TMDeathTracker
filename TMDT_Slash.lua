@@ -182,7 +182,6 @@ handlers.setAlt = {
                 local newalt = strtrim(args[3])
 
                 if tmdt.isTMCharacter(main) then
-                    db.extraCharacters = db.extraCharacters or {}
                     local dbec = db.extraCharacters
                     if not dbec[main] then dbec[main] = {} end
 

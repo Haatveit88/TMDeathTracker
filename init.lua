@@ -35,6 +35,20 @@ local function verifyOptions()
     end
 end
 
+-- init or patch db
+local function verifyDB()
+    local dbstruct = {
+        extraCharacters = {},
+        deathcount = {},
+    }
+
+    for k, v in pairs(dbstruct) do
+        if not db[k] then
+            db[k] = v
+        end
+    end
+end
+
 -- handle addon load complete
 function eventHandlers.ADDON_LOADED(self, ...)
     if ... == addonName then
@@ -47,6 +61,7 @@ function eventHandlers.ADDON_LOADED(self, ...)
 
         TMDT_DB = TMDT_DB or {}
         db = TMDT_DB
+        verifyDB()
 
         -- initialize all other addon files now that we have the SavedVariables figured out
         for name, mod in pairs(tmdt.modules) do
