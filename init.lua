@@ -6,9 +6,6 @@ tmdt.modules = {}
 -----------------------
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
-frame:RegisterEvent("PLAYER_DEAD")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("CHAT_MSG_ADDON")
 
 -- lua locals
 local format = string.format
@@ -65,7 +62,7 @@ function eventHandlers.ADDON_LOADED(self, ...)
 
         -- initialize all other addon files now that we have the SavedVariables figured out
         for name, mod in pairs(tmdt.modules) do
-            mod.init(options, db)
+            mod.init(options, db, frame)
 
             if options.debug then
                 print(format("tmdt initialized module [%s]", name))
@@ -78,7 +75,8 @@ function eventHandlers.ADDON_LOADED(self, ...)
 
         C_ChatInfo.RegisterAddonMessagePrefix(addonMsgPrefix)
 
-        tmdt.addonPrint("Loaded.")
+        local identity = tmdt.isTMCharacter(UnitName("player"))
+        tmdt.addonPrint("Loaded. You are %s%s|r.", identity and "|cff00aa00" or "|cffaa0000", identity and tmdt.firstToUpper(identity) or "not a recognized TM member")
     end
 end
 
@@ -88,6 +86,10 @@ frame:SetScript("OnEvent", function(self, event, ...)
         eventHandlers[event](self, ...)
     end
 end)
+
+-- gather and export some info
+tmdt.player = GetUnitName("player")
+tmdt.playerClass  = UnitClassBase("player")
 
 -- export some stuff to addon namespace
 tmdt.addonMsgPrefix = addonMsgPrefix

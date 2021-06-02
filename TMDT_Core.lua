@@ -3,25 +3,22 @@ local addonName, tmdt = ...
 local module = {}
 tmdt.modules.core = module
 
+-- module locals
+local enableTMDT
+local disableTMDT
+
 -- tmdt module
-local options, db
-function module.init(opt, database)
-    options, db = opt, database
+local options, db, frame
+function module.init(opt, database, addonframe)
+    options, db, frame = opt, database, addonframe
 end
 
 -- lua locals
 local format = string.format
 
--- tmdt locals
+-- module locals
 local addonMsgPrefix = tmdt.addonMsgPrefix
 local eventHandlers = tmdt.eventHandlers
-
-local colors = {
-    tmg = "|cff00af00",
-    tmr = "|cffff0000",
-    tmp = "|cffff00ff",
-}
-
 local addonMessageChannels = {
     PARTY = "PARTY",
     RAID = "RAID",
@@ -34,12 +31,22 @@ local addonMessageChannels = {
     YELL = "YELL",
 }
 
+local colors = {
+    tmg = "|cff00af00",
+    tmr = "|cffff0000",
+    tmp = "|cffff00ff",
+}
+
 -- helpers
 function tmdt.firstToUpper(str)
     return (str:gsub("^%l", string.upper))
 end
 
-function tmdt.addonPrint(msg)
+function tmdt.addonPrint(msg, ...)
+    if ... then
+        msg = format(msg, ...)
+    end
+
     print(format("%sTM|r%sDT|r:: %s", colors.tmg, colors.tmp, msg))
 end
 
@@ -54,25 +61,16 @@ local function compoundMatch(str, matches)
 end
 
 -- addon msg stuff
+-- broadcasts a message
 local function broadcast(msg, channel, target)
     if options.debug then
         print(format("TMDT_MsgEcho<%s>%s: %s", channel, target and ("["..target.."]") or "", msg))
     end
 
     if addonMessageChannels[channel] then
-        C_ChatInfo.SendAddonMessage(addonMsgPrefix, msg, addonMessageChannels[channel], target)
+        C_ChatInfo.SendAddonMessage(addonMsgPrefix, msg, channel, target)
     else
         tmdt.addonPrint(format("|cffff0000Error:|r Tried to use invalid AddonCommsChannel '%s'", channel))
-    end
-end
-
-function eventHandlers.PLAYER_DEAD()
-    local player = UnitName("player")
-    if tmdt.isTMCharacter(player) then
-        --print(format("%s died", player))
-        local msg = player .. " died."
-
-        broadcast(msg, addonMessageChannels.GUILD)
     end
 end
 
