@@ -8,5 +8,4 @@
 init.lua
 TMDT_Core.lua
 TMDT_Data.lua
-TMDT_Sound.lua
 TMDT_Slash.lua

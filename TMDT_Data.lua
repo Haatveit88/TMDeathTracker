@@ -20,24 +20,27 @@ local characters = {
         soundFile = "wilhelm"
     },
     avael = {
-        "addonbabe",
-        "airah",
-        "manitvex",
-        "ninriel",
-        "mythricia",
-        "hederine",
-        "lorasha",
+        alts = {
+            "addonbabe",
+            "airah",
+            "manitvex",
+            "ninriel",
+            "mythricia",
+            "hederine",
+            "lorasha",
+        },
     }
 }
 -- sanitize the characters table to make EVERYTHING lowercase, just in *case* I make a mistake during data entry.
 do
     local new = {}
-    for main, alts in pairs(characters) do
-        local mainLower = main:lower()
-        new[mainLower] = {}
+    for main, data in pairs(characters) do
+        new[main:lower()] = {
+            alts = {}
+        }
 
-        for i, alt in pairs(alts) do
-            tinsert(new[mainLower], alt:lower())
+        for _, alt in pairs(data.alts) do
+            tinsert(new[main:lower()].alts, alt:lower())
         end
     end
 
@@ -90,24 +93,22 @@ end
 
 -- determines if <query> belongs to a known main TM member
 local function isTMCharacter(queryName)
-    local name = queryName:lower()
-    local mainCharacter = false
+    queryName = queryName:lower()
 
     -- try to match a character name
-    for main, alts in pairs(characters) do
-        if main:lower() == name then
-            mainCharacter = main
+    for main, data in pairs(characters) do
+        if queryName == main then
+            return main
         else
-            for i, alt in ipairs(alts) do
-                if name == alt:lower() then
-                    mainCharacter = main
-                    break
+            for i, alt in ipairs(data.alts) do
+                if queryName == alt then
+                    return main
                 end
             end
         end
     end
 
-    return mainCharacter
+    return false
 end
 
 -- patch character list if required
