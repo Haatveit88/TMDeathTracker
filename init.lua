@@ -6,6 +6,7 @@ tmdt.modules = {}
 -----------------------
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 -- lua locals
 local format = string.format
@@ -73,10 +74,14 @@ function eventHandlers.ADDON_LOADED(self, ...)
             tmdt.patchCharacterList(db.extraCharacters)
         end
 
-        C_ChatInfo.RegisterAddonMessagePrefix(addonMsgPrefix)
-
         local identity = tmdt.isTMCharacter(UnitName("player"))
         tmdt.addonPrint("Loaded. You are %s%s|r.", identity and "|cff00aa00" or "|cffaa0000", identity and tmdt.firstToUpper(identity) or "not a recognized TM member")
+    end
+end
+
+function eventHandlers.PLAYER_ENTERING_WORLD(self, ...)
+    if not C_ChatInfo.IsAddonMessagePrefixRegistered(addonMsgPrefix) then
+        C_ChatInfo.RegisterAddonMessagePrefix(addonMsgPrefix)
     end
 end
 
