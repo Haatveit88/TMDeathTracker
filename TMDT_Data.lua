@@ -1,7 +1,7 @@
--- contains known characters and their aliases (alts)
+-- contains known characters and their related data
 local addonName, tmdt = ...
 local module = {}
-tmdt.modules.alias = module
+tmdt.modules.data = module
 
 -- tmdt module
 local options, db
@@ -9,12 +9,15 @@ function module.init(opt, database)
     options, db = opt, database
 end
 
--- tmdt locals
+-- module locals
 local characters = {
     saelaris = {
-        "athall",
-        "eleonar",
-        "snikkels",
+        alts = {
+            "athall",
+            "eleonar",
+            "snikkels",
+        },
+        soundFile = "wilhelm"
     },
     avael = {
         "addonbabe",
@@ -26,8 +29,8 @@ local characters = {
         "lorasha",
     }
 }
-
-do -- sanitize the characters table to make EVERYTHING lowercase, just in *case* I make a mistake during data entry.
+-- sanitize the characters table to make EVERYTHING lowercase, just in *case* I make a mistake during data entry.
+do
     local new = {}
     for main, alts in pairs(characters) do
         local mainLower = main:lower()
@@ -39,6 +42,50 @@ do -- sanitize the characters table to make EVERYTHING lowercase, just in *case*
     end
 
     characters = new
+end
+
+-- paths
+local pre = "Interface\\AddOns\\TMDeathTracker\\Sounds\\"
+local pre_special = "Interface\\AddOns\\TMDeathTracker\\Sounds\\wilhelm_distant\\"
+local post = ".mp3"
+local testsound = "wilhelm"
+
+-- sekrit speshul
+local saelspecial = {
+    "wilhelm_echo_left",
+    "wilhelm_echo_right",
+    "wilhelm_faded_left",
+    "wilhelm_faded_right",
+    "wilhelm_left",
+    "wilhelm_right",
+}
+
+-- retrieves a sound by mian character name
+function tmdt.getCharacterSound(id)
+    if id == "test" then
+        return pre .. testsound .. post
+    else
+        local main = tmdt.isTMCharacter(id)
+        if main then
+            if characters[main].soundFile then
+                return pre .. characters[main].soundFile .. post
+            else
+                return false, string.format("no soundFile: %s", main)
+            end
+        else
+            return false, string.format("not a TM character: %s. This is a strange error, and you should screenshot this message and tell Avael.", id)
+        end
+    end
+end
+
+function tmdt.play(id)
+    local soundFile, errmsg = tmdt.getCharacterSound(id)
+
+    if soundFile then
+        PlaySoundFile(soundFile, options.channel)
+    elseif options.debug then
+        print(string.format("|cffaf0000debug:|r %s", errmsg))
+    end
 end
 
 -- determines if <query> belongs to a known main TM member
@@ -62,7 +109,6 @@ local function isTMCharacter(queryName)
 
     return mainCharacter
 end
-
 
 -- patch character list if required
 local function patchCharacterList(extraCharacters)
