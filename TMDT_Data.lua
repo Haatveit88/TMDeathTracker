@@ -67,6 +67,8 @@ local saelspecial = {
 function tmdt.getCharacterSound(id)
     if id == "test" then
         return pre .. testsound .. post
+    elseif id == "saelspecial" then
+        return pre_special .. saelspecial[math.random(1, #saelspecial)] .. post
     else
         local main = tmdt.isTMCharacter(id)
         if main then
@@ -78,16 +80,6 @@ function tmdt.getCharacterSound(id)
         else
             return false, string.format("not a TM character: %s. This is a strange error, and you should screenshot this message and tell Avael.", id)
         end
-    end
-end
-
-function tmdt.play(id)
-    local soundFile, errmsg = tmdt.getCharacterSound(id)
-
-    if soundFile then
-        PlaySoundFile(soundFile, options.channel)
-    elseif options.debug then
-        print(string.format("|cffaf0000debug:|r %s", errmsg))
     end
 end
 

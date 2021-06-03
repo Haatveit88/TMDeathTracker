@@ -80,6 +80,16 @@ local function compoundMatch(str, matches)
     return false
 end
 
+function tmdt.play(id)
+    local soundFile, errmsg = tmdt.getCharacterSound(id)
+
+    if soundFile then
+        PlaySoundFile(soundFile, options.channel)
+    else--if options.debug then
+        print(string.format("|cffaf0000debug:|r %s", errmsg))
+    end
+end
+
 -- addon msg stuff
 -- broadcasts a message
 local function broadcast(data)
