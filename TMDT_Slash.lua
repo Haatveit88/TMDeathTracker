@@ -52,39 +52,49 @@ handlers.help = {
         addonPrint("Valid commands for TMDT are;")
 
         for label, cmd in pairs(handlers) do
-            local argHint = cmd.hint
+            local argHint = cmd.hint or ""
             local debug = ""
             local desc = ""
-
-            -- add command aliases
-            local aliases = {}
-            for key, handler in pairs(commandAlias) do
-                if handler == cmd then
-                    aliases[#aliases+1] = key
-                end
-            end
-            local slashCmds = ("|cff00f000/%s|r "):format(table.concat(aliases, ", "))
-
-            -- add argument hint?
-            if argHint then
-                argHint = "|cffC0C0C0" .. argHint .. "|r"
-            end
+            local skip = false
 
             -- add debug flag?
             if cmd.debug then
                 if options.debug then
                     debug = " |cffaf0000[DEBUG]|r "
+                else
+                    skip = true
                 end
             end
 
-            -- add description
-            if cmd.description then
-                desc = "\n  > |cffC0FFFF"..cmd.description.."|r"
-            end
+            if not skip then
 
-            print(slashCmds .. argHint .. debug .. desc)
+                -- add command aliases
+                local aliases = {}
+                for key, handler in pairs(commandAlias) do
+                    if handler == cmd then
+                        aliases[#aliases+1] = key
+                    end
+                end
+                local slashCmds = ("|cff00f000/tmdt %s|r "):format(table.concat(aliases, ", "))
+
+                -- add argument hint?
+                if argHint then
+                    argHint = "|cffC0C0C0" .. argHint .. "|r"
+                end
+
+                -- add description
+                if cmd.description then
+                    desc = "\n  > |cffC0FFFF"..cmd.description.."|r"
+                end
+
+                print(slashCmds .. argHint .. debug .. desc)
+            else
+                -- do nothing
+            end
         end
-    end
+    end,
+
+    description = "Shows you this very list, that you are already reading..."
 }
 
 handlers.testPlay = {
@@ -132,7 +142,8 @@ handlers.toggleDebug = {
         addonPrint("debug is " .. newState)
     end,
 
-    description = "Toggles debugging mode (don't touch unless Av told you to)."
+    description = "Toggles debugging mode (don't touch unless Av told you to).",
+    debug = true
 }
 
 handlers.setGetChannel = {
@@ -204,149 +215,150 @@ handlers.setAlt = {
     end,
 
     description = "Add a new alt to a known main character. Death counters and sounds will then recognize that alt.",
-    hint = "<main name> <alt name>",
-}
+        hint = "<main name> <alt name>",
+    }
 
-handlers.removeAlt = {
-    command = function(args)
-        local main = strtrim(args[2])
-        local alt = strtrim(args[3])
+    handlers.removeAlt = {
+        command = function(args)
+            local main = strtrim(args[2])
+            local alt = strtrim(args[3])
 
-        if tmdt.isTMCharacter(main) then
-            local dbec = db.extraCharacters
-            if dbec[main] then
-                local found = false
-                for i, name in pairs(dbec[main]) do
-                    if name == alt then
-                        table.remove(dbec[main], i)
-                        found = true
+            if tmdt.isTMCharacter(main) then
+                local dbec = db.extraCharacters
+                if dbec[main] then
+                    local found = false
+                    for i, name in pairs(dbec[main]) do
+                        if name == alt then
+                            table.remove(dbec[main], i)
+                            found = true
+                        end
                     end
-                end
 
-                if not next(dbec[main]) then
-                    dbec[main] = nil
-                end
+                    if not next(dbec[main]) then
+                        dbec[main] = nil
+                    end
 
-                if found then
-                    addonPrint(format("deleted alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    if found then
+                        addonPrint(format("deleted alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    else
+                        addonPrint(format("unknown alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    end
                 else
-                    addonPrint(format("unknown alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    addonPrint(format("main %s has no alts to remove", firstToUpper(main)))
                 end
             else
-                addonPrint(format("main %s has no alts to remove", firstToUpper(main)))
+                addonPrint(format("No known TM main characters called %s, no alt removed", firstToUpper(main)))
             end
+        end,
+
+        description = "Remove an alt from a known main. Only works for alts you added via /tmdt setalt",
+        hint = "<main name> <alt name>",
+    }
+
+    handlers.queryName = {
+        command = function(args)
+            if args[2] then
+                local query = firstToUpper(args[2])
+                local tmChar = tmdt.isTMCharacter(query)
+                local mainCharacter = tmChar and firstToUpper(tmChar) or false
+                tmdt.addonPrint(format("\"%s\" %s", query, mainCharacter and format("is a known TM character (main: \"%s\")", mainCharacter) or ("is NOT a known TM character")))
+            end
+        end,
+
+        description = "Check whether a character name is recognized in TMDT, searches all mains and alts.",
+        hint = "<name to query>",
+    }
+
+    handlers.fakeDeathEvent = {
+        command = function(args)
+            play(firstToUpper(args[2]))
+            print("|cffaf0000Fake death: " .. args[2])
+        end,
+
+        debug = true,
+        description = "Play sound and show a notification as if <character> died. Does not increase death counter nor show for other people.",
+        hint = "<character name>"
+    }
+
+    handlers.fakeSaelEvent = {
+        command = function()
+            play("saelspecial")
+        end,
+
+        description = "Hmm. Mysterious.",
+        debug = true,
+    }
+
+    handlers.wipeSettings = {
+        command = function()
+            addonPrint("Wiped settings & (extra) alt database")
+            wipe(db.extraCharacters)
+            wipe(TMDT_Options)
+            tmdt.verifyOptions()
+        end,
+
+        description = "Wipes out your TMDT settings and your custom alt database, if any.",
+    }
+
+    handlers.fakeAddonMessage = {
+        command = function(args)
+        end,
+
+        debug = true,
+        description = "Broadcasts an arbitrary AddonMessage using the TMDT prefix.",
+        hint = "<raw message>",
+    }
+
+    -- picks the appropriate handler based on keywords / aliases
+    commandAlias = {
+        mute = handlers.toggleMute,
+        self = handlers.toggleSelf,
+        channel = handlers.setGetChannel,
+
+        -- character db stuff
+        setalt = handlers.setAlt,
+        addalt = handlers.setAlt,
+        alts = handlers.getAlts,
+        listalts = handlers.getAlts,
+        removealt = handlers.removeAlt,
+
+        -- misc
+        wipe = handlers.wipeSettings,
+        help = handlers.help,
+
+        -- debug-ish stuff
+        test = handlers.testPlay,
+        query = handlers.queryName,
+        fake = handlers.fakeDeathEvent,
+        fakespecial = handlers.fakeSaelEvent,
+        debug = handlers.toggleDebug,
+        fakemsg = handlers.fakeAddonMessage,
+    }
+
+    -- handlers incoming slash cmd and dispatches to handler if valid alias match can be made
+    local function commandHandler(msg, EditBox)
+        msg = strtrim(msg)
+
+        -- split into parts
+        local args = {}
+        for word in string.gmatch(msg, "[^ ]+") do
+            tinsert(args, word:lower()) -- ALL INCOMING WORDS ARE TRIMMED AND LOWERCASED
+        end
+
+        local cmd = args[1] or nil
+        if not cmd then
+            addonPrint("No command.")
+            return false
         else
-            addonPrint(format("No known TM main characters called %s, no alt removed", firstToUpper(main)))
+            if commandAlias[cmd] then
+                commandAlias[cmd].command(args)
+            else
+                if msg ~= "" then
+                    addonPrint("Unknown command \"".. msg .."\".")
+                    return
+                end
+            end
         end
-    end,
-
-    description = "Remove an alt from a known main. Only works for alts you added via /tmdt setalt",
-    hint = "<main name> <alt name>",
-}
-
-handlers.queryName = {
-    command = function(args)
-        if args[2] then
-            local query = firstToUpper(args[2])
-            local mainCharacter = firstToUpper(tmdt.isTMCharacter(query))
-            print(format("|cffaa0000tmdt debug:|r \"%s\" %s", query, mainCharacter and format("is a known TM character (main: \"%s\")", mainCharacter) or ("is NOT a known TM character")))
-        end
-    end,
-
-    description = "Check whether a character name is recognized in TMDT, searches all mains and alts.",
-    hint = "<name to query>",
-}
-
-handlers.fakeDeathEvent = {
-    command = function(args)
-        play(firstToUpper(args[2]))
-        print("|cffaf0000Fake death: " .. args[2])
-    end,
-
-    debug = true,
-    description = "Play sound and show a notification as if <character> died. Does not increase death counter nor show for other people.",
-    hint = "<character name>"
-}
-
-handlers.fakeSaelEvent = {
-    command = function()
-        play("saelspecial")
-    end,
-
-    description = "Hmm. Mysterious.",
-    debug = true,
-}
-
-handlers.wipeSettings = {
-    command = function()
-        addonPrint("Wiped settings & (extra) alt database")
-        wipe(db.extraCharacters)
-        wipe(TMDT_Options)
-        tmdt.verifyOptions()
-    end,
-
-    description = "Wipes out your TMDT settings and your custom alt database, if any.",
-}
-
-handlers.fakeAddonMessage = {
-    command = function(args)
-    end,
-
-    debug = true,
-    description = "Broadcasts an arbitrary AddonMessage using the TMDT prefix.",
-    hint = "<raw message>",
-}
-
--- picks the appropriate handler based on keywords / aliases
-commandAlias = {
-    mute = handlers.toggleMute,
-    self = handlers.toggleSelf,
-    channel = handlers.setGetChannel,
-
-    -- character db stuff
-    setalt = handlers.setAlt,
-    addalt = handlers.setAlt,
-    alts = handlers.getAlts,
-    listalts = handlers.getAlts,
-    removealt = handlers.removeAlt,
-
-    -- misc
-    wipe = handlers.wipeSettings,
-    help = handlers.help,
-
-    -- debug-ish stuff
-    test = handlers.testPlay,
-    query = handlers.queryName,
-    fake = handlers.fakeDeathEvent,
-    fakespecial = handlers.fakeSaelEvent,
-    debug = handlers.toggleDebug,
-    fakemsg = handlers.fakeAddonMessage,
-}
-
--- handlers incoming slash cmd and dispatches to handler if valid alias match can be made
-local function commandHandler(msg, EditBox)
-    msg = strtrim(msg)
-
-    -- split into parts
-    local args = {}
-    for word in string.gmatch(msg, "[^ ]+") do
-        tinsert(args, word:lower()) -- ALL INCOMING WORDS ARE TRIMMED AND LOWERCASED
     end
 
-    local cmd = args[1] or nil
-    if not cmd then
-        addonPrint("No command.")
-        return false
-    else
-        if commandAlias[cmd] then
-            commandAlias[cmd].command(args)
-        else
-            if msg ~= "" then
-                addonPrint("Unknown command \"".. msg .."\".")
-                return
-            end
-        end
-    end
-end
-
-SlashCmdList["TMDT"] = commandHandler
+    SlashCmdList["TMDT"] = commandHandler
