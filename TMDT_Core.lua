@@ -3,10 +3,6 @@ local addonName, tmdt = ...
 local module = {}
 tmdt.modules.core = module
 
--- module locals
-local enableTMDT
-local disableTMDT
-
 -- tmdt module
 local options, db, frame
 function module.init(opt, database, addonframe)
@@ -22,6 +18,9 @@ local format = string.format
 -- module locals
 local addonMsgPrefix = tmdt.addonMsgPrefix
 local eventHandlers = tmdt.eventHandlers
+local addonPrint = tmdt.addonPrint
+local debugPrint = tmdt.debugPrint
+
 local addonMessageChannels = {
     PARTY = true,
     RAID = true,
@@ -39,35 +38,21 @@ for k, v in pairs(addonMessageChannels) do
 end
 
 -- TMDT addonMessage types
-local eventType = {
+local TMDTEvent = {
     SAEL_DIED = true,
     MEMBER_DIED = true,
     OTHER_DIED = true,
 }
 -- enum-i-fy eventTypes
-for k, v in pairs(eventType) do
-    eventType[k] = k
+for k, v in pairs(TMDTEvent) do
+    TMDTEvent[k] = k
 end
-
-local colors = {
-    tmg = "|cff00af00",
-    tmr = "|cffff0000",
-    tmp = "|cffff00ff",
-}
 
 local player = UnitName("player")
 
 -- helpers
 function tmdt.firstToUpper(str)
     return (str:gsub("^%l", string.upper))
-end
-
-function tmdt.addonPrint(msg, ...)
-    if ... then
-        msg = format(msg, ...)
-    end
-
-    print(format("%sTM|r%sDT|r:: %s", colors.tmg, colors.tmp, msg))
 end
 
 local function compoundMatch(str, matches)
@@ -85,23 +70,30 @@ function tmdt.play(id)
 
     if soundFile then
         PlaySoundFile(soundFile, options.channel)
-    else--if options.debug then
-        print(string.format("|cffaf0000debug:|r %s", errmsg))
+    else
+        debugPrint("|cffaf0000debug:|r %s", errmsg)
     end
 end
 
 -- addon msg stuff
+-- TMDT event handlers, these handle INCOMING events.
+local TMDTEventHandler = {}
+function TMDTEventHandler.MEMBER_DIED(name)
+    tmdt.play(name)
+    debugPrint("recieved MEMBER_DIED event for: %s", name)
+end
+
 -- broadcasts a message
 local function broadcast(data)
     local event, msg, channel, target = data.event, data.message, data.channel, data.target
 
     if not (msg and channel) then
-        print("TMDT_ERROR: Missing argument to broadcast()")
+        debugPrint("TMDT_ERROR: Missing argument to broadcast()")
         if not msg then
-            print("Missing: msg")
+            debugPrint("Missing: msg")
         end
         if not channel then
-            print("Missing: channel")
+            debugPrint("Missing: channel")
         end
 
         return
@@ -109,14 +101,12 @@ local function broadcast(data)
 
     local payload = format("%s#%s", event, data.message)
 
-    if options.debug then
-        print(format("TMDT_MsgEcho<%s>%s: %s", channel, target and ("["..target.."]") or "", payload))
-    end
+    debugPrint("AddonMsg Echo <%s> %s: %s", channel, target and ("["..target.."]") or "", payload)
 
     if addonMessageChannels[channel] then
         C_ChatInfo.SendAddonMessage(addonMsgPrefix, payload, channel, target)
     else
-        tmdt.addonPrint(format("|cffff0000Error:|r Tried to use invalid AddonCommsChannel '%s'", channel))
+        addonPrint("|cffff0000Error:|r Tried to use invalid AddonCommsChannel '%s'", channel)
     end
 end
 
@@ -124,42 +114,48 @@ end
 function eventHandlers.CHAT_MSG_ADDON(self, prefix, message, channel, sender, target, _, localId, channelName, _)
     if prefix == addonMsgPrefix then
         -- print(table.concat({message, channel, sender, target, channelName}, ", "))
-        local pieces = {}
-        --for word in string.gmatch(msg, "[^ ]+") do
+        local eventData = {}
+
         for piece in string.gmatch(message, "[^#]+") do
-            tinsert(pieces, piece)
+            tinsert(eventData, piece)
         end
 
-        for k, v in ipairs(pieces) do
-            print(k, v)
+        -- verify that it's a valid TMDT event
+        local event = eventData[1]
+        if TMDTEventHandler[event] then
+            -- call event with all payload packets as arguments
+            TMDTEventHandler[event](unpack(eventData, 2))
+        else
+            debugPrint("|cffff0000TMDTError: Unhandled event: %s", tostring(event))
         end
     end
 end
 
 function eventHandlers.PLAYER_DEAD()
     local member = tmdt.isTMCharacter(player)
+
     if member then
-        if member == "avael" then
+        if member == "saelaris" then
             broadcast{
-                event = eventType.SAEL_DIED,
+                event = TMDTEvent.SAEL_DIED,
                 message = "again",
+                channel = addonMessageChannels.GUILD,
+            }
+        end
+
+        if options.debug then
+            broadcast{
+                event = TMDTEvent.MEMBER_DIED,
+                message = member,
                 channel = addonMessageChannels.WHISPER,
-                target = "Addonbabe"
+                target = player
             }
         else
             broadcast{
-                event = eventType.MEMBER_DIED,
+                event = TMDTEvent.MEMBER_DIED,
                 message = member,
-                channel = addonMessageChannels.WHISPER,
-                target = "Addonbabe"
+                channel = addonMessageChannels.RAID,
             }
         end
-    else
-        broadcast{
-            event = eventType.OTHER_DIED,
-            message = UnitName("player"),
-            channel = addonMessageChannels.WHISPER,
-            target = "Addonbabe"
-        }
     end
 end

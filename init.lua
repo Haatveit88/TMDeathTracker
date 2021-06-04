@@ -17,12 +17,19 @@ local eventHandlers = {}
 local options = {}
 local db = {}
 
+local colors = {
+    tm_green = "|cff00af00",
+    tm_red = "|cffff0000",
+    tm_purple = "|cffff00ff",
+    tm_debug = "|cffafaf00",
+}
+
 -- option handling
 local function verifyOptions()
     local opts = {
         channel = "Master",
         muted = false,
-        self = false,
+        self = true,
         debug = false,
     }
 
@@ -47,6 +54,28 @@ local function verifyDB()
     end
 end
 
+-- print helper
+local function addonPrint(msg, ...)
+    if ... then
+        msg = format(msg, ...)
+    end
+
+    print(format("%sTM|r%sDT|r:: %s", colors.tm_green, colors.tm_purple, msg))
+end
+tmdt.addonPrint = addonPrint
+
+-- debugPrint helper
+local function debugPrint(msg, ...)
+    if ... then
+        msg = format(msg, ...)
+    end
+
+    if options.debug then
+        print(format("%sTM|r%sDT%sDebug|r:: %s", colors.tm_green, colors.tm_purple, colors.tm_debug, msg))
+    end
+end
+tmdt.debugPrint = debugPrint
+
 -- handle addon load complete
 function eventHandlers.ADDON_LOADED(self, ...)
     if ... == addonName then
@@ -65,9 +94,7 @@ function eventHandlers.ADDON_LOADED(self, ...)
         for name, mod in pairs(tmdt.modules) do
             mod.init(options, db, frame)
 
-            if options.debug then
-                print(format("tmdt initialized module [%s]", name))
-            end
+            debugPrint("tmdt initialized module [%s]", name)
         end
 
         if db.extraCharacters then
@@ -75,7 +102,7 @@ function eventHandlers.ADDON_LOADED(self, ...)
         end
 
         local identity = tmdt.isTMCharacter(UnitName("player"))
-        tmdt.addonPrint("Loaded. You are %s%s|r.", identity and "|cff00aa00" or "|cffaa0000", identity and tmdt.firstToUpper(identity) or "not a recognized TM member")
+        addonPrint("Loaded. You are %s%s|r.", identity and "|cff00aa00" or "|cffaa0000", identity and tmdt.firstToUpper(identity) or "not a recognized TM member")
     end
 end
 

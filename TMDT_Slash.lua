@@ -11,6 +11,7 @@ end
 
 -- tmdt locals
 local addonPrint = tmdt.addonPrint
+local debugPrint = tmdt.debugPrint
 local play = tmdt.play
 local firstToUpper = tmdt.firstToUpper
 local commandAlias
@@ -92,6 +93,7 @@ handlers.help = {
                 -- do nothing
             end
         end
+        return true
     end,
 
     description = "Shows you this very list, that you are already reading..."
@@ -108,6 +110,7 @@ handlers.testPlay = {
         C_Timer.After(0.3, function()
             play("test")
         end)
+        return true
     end,
 
     debug = true,
@@ -118,8 +121,9 @@ handlers.testPlay = {
 handlers.toggleMute = {
     command = function()
         options.muted = not options.muted
-        local newState = options.muted and ("|cffff0000" .. "muted") or ("|cff00ff00" .. "unmuted")
+        local newState = options.muted and ("|cffff0000" .. "Muted") or ("|cff00ff00" .. "Unmuted")
         addonPrint(newState)
+        return true
     end,
 
     description = "Toggles muting TMDT."
@@ -128,8 +132,9 @@ handlers.toggleMute = {
 handlers.toggleSelf = {
     command = function()
         options.self = not options.self
-        local newState = options.self and ("|cff00ff00" .. "enabled") or ("|cffff0000" .. "disabled")
-        addonPrint("play on self " .. newState)
+        local newState = options.self and ("|cff00ff00" .. "Enabled") or ("|cffff0000" .. "Disabled")
+        addonPrint("play self is %s", newState)
+        return true
     end,
 
     description = "Toggles muting your own death announces / sound effect."
@@ -138,8 +143,9 @@ handlers.toggleSelf = {
 handlers.toggleDebug = {
     command = function()
         options.debug = not options.debug
-        local newState = options.debug and ("|cff00ff00" .. "enabled") or ("|cffff0000" .. "disabled")
-        addonPrint("debug is " .. newState)
+        local newState = options.debug and ("|cff00ff00" .. "Enabled") or ("|cffff0000" .. "Disabled")
+        addonPrint("debug is %s", newState)
+        return true
     end,
 
     description = "Toggles debugging mode (don't touch unless Av told you to).",
@@ -148,16 +154,22 @@ handlers.toggleDebug = {
 
 handlers.setGetChannel = {
     command = function(args)
-        if type(args[2]) == "string" then
-            local channel = validChannels[strtrim(args[2])]
-            if channel then
-                addonPrint("Changed output channel to '" .. channel .. "'")
-                options.channel = channel
+        if args[2] then
+            if type(args[2]) == "string" then
+                local channel = validChannels[strtrim(args[2])]
+                if channel then
+                    addonPrint("Changed output channel to '%s'", channel)
+                    options.channel = channel
+                else
+                    addonPrint("Invalid output channel '%s'! Must be one of: [%s]", args[2], validChannels())
+                end
             else
-                addonPrint(format("Invalid output channel '%s'! Must be one of: [%s]", args[2], validChannels()))
+                addonPrint("Current output channel is '%s'. Options are: %s", options.channel, validChannels())
             end
+
+            return true
         else
-            addonPrint("Current output channel is '" .. options.channel .. "'. Options are: " .. validChannels())
+            return false
         end
     end,
 
@@ -167,17 +179,23 @@ handlers.setGetChannel = {
 
 handlers.getAlts = {
     command = function(args)
-        local main = strtrim(args[2])
+        if args[2] then
+            local main = strtrim(args[2])
 
-        if tmdt.isTMCharacter(main) then
-            if #tmdt.characters[main] > 0 then
-                local alts = table.concat(tmdt.characters[main], ", ")
-                addonPrint(format("%s has %i alts: [%s]", firstToUpper(main), #tmdt.characters[main], alts))
+            if tmdt.isTMCharacter(main) then
+                if #tmdt.characters[main].alts > 0 then
+                    local alts = table.concat(tmdt.characters[main].alts, ", ")
+                    addonPrint("%s has %i alts: [%s]", firstToUpper(main), #tmdt.characters[main].alts, alts)
+                else
+                    addonPrint("%s has no alts", firstToUpper(main))
+                end
             else
-                addonPrint(format("%s has no alts", firstToUpper(main)))
+                addonPrint("No known TM main characters called %s", firstToUpper(main))
             end
+
+            return true
         else
-            addonPrint(format("No known TM main characters called %s", firstToUpper(main)))
+            return false
         end
     end,
 
@@ -187,30 +205,32 @@ handlers.getAlts = {
 
 handlers.setAlt = {
     command = function(args)
-        if args[2] then
+        if args[2] and args[3] then
             local main = strtrim(args[2])
-            if args[3] then -- setting new alt
-                local newalt = strtrim(args[3])
+            local newalt = strtrim(args[3])
 
-                if tmdt.isTMCharacter(main) then
-                    local dbec = db.extraCharacters
-                    if not dbec[main] then dbec[main] = {} end
+            if tmdt.isTMCharacter(main) then
+                local dbec = db.extraCharacters
+                if not dbec[main] then dbec[main] = {} end
 
-                    if tContains(dbec[main], newalt) then
-                        addonPrint(format("Alt %s already added to %s", firstToUpper(newalt), firstToUpper(main)))
-                    else
-                        if not dbec[main] then
-                            dbec[main] = {}
-                        end
-                        tinsert(dbec[main], newalt)
-                        tmdt.patchCharacterList(db.extraCharacters)
-
-                        addonPrint(format("created a new alt for main %s called %s", firstToUpper(main), firstToUpper(newalt)))
-                    end
+                if tContains(dbec[main], newalt) then
+                    addonPrint("Alt %s already added to %s", firstToUpper(newalt), firstToUpper(main))
                 else
-                    addonPrint(format("No known TM main characters called %s, no alt added", firstToUpper(main)))
+                    if not dbec[main] then
+                        dbec[main] = {}
+                    end
+                    tinsert(dbec[main], newalt)
+                    tmdt.patchCharacterList(db.extraCharacters)
+
+                    addonPrint("created a new alt for main %s called %s", firstToUpper(main), firstToUpper(newalt))
                 end
+            else
+                addonPrint("No known TM main characters called %s, no alt added", firstToUpper(main))
             end
+
+            return true
+        else
+            return false
         end
     end,
 
@@ -220,6 +240,10 @@ handlers.setAlt = {
 
 handlers.removeAlt = {
     command = function(args)
+        if not (args[2] and args[3]) then
+            return false
+        end
+
         local main = strtrim(args[2])
         local alt = strtrim(args[3])
 
@@ -239,16 +263,18 @@ handlers.removeAlt = {
                 end
 
                 if found then
-                    addonPrint(format("deleted alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    addonPrint("deleted alt %s for main %s", firstToUpper(alt), firstToUpper(main))
                 else
-                    addonPrint(format("unknown alt %s for main %s", firstToUpper(alt), firstToUpper(main)))
+                    addonPrint("unknown alt %s for main %s", firstToUpper(alt), firstToUpper(main))
                 end
             else
-                addonPrint(format("main %s has no alts to remove", firstToUpper(main)))
+                addonPrint("main %s has no alts to remove", firstToUpper(main))
             end
         else
-            addonPrint(format("No known TM main characters called %s, no alt removed", firstToUpper(main)))
+            addonPrint("No known TM main characters called %s, no alt removed", firstToUpper(main))
         end
+
+        return true
     end,
 
     description = "Remove an alt from a known main. Only works for alts you added via /tmdt setalt",
@@ -261,7 +287,11 @@ handlers.queryName = {
             local query = firstToUpper(args[2])
             local tmChar = tmdt.isTMCharacter(query)
             local mainCharacter = tmChar and firstToUpper(tmChar) or false
-            tmdt.addonPrint(format("\"%s\" %s", query, mainCharacter and format("is a known TM character (main: \"%s\")", mainCharacter) or ("is NOT a known TM character")))
+            addonPrint("\"%s\" %s", query, mainCharacter and format("is a known TM character (main: \"%s\")", mainCharacter) or ("is NOT a known TM character"))
+
+            return true
+        else
+            return false
         end
     end,
 
@@ -271,8 +301,13 @@ handlers.queryName = {
 
 handlers.fakeDeathEvent = {
     command = function(args)
-        play(firstToUpper(args[2]))
-        print("|cffaf0000Fake death: " .. args[2])
+        if args[2] then
+            play(firstToUpper(args[2]))
+            debugPrint("|cffaf0000Fake death: %s", args[2])
+            return true
+        else
+            return false
+        end
     end,
 
     debug = true,
@@ -283,6 +318,7 @@ handlers.fakeDeathEvent = {
 handlers.fakeSaelEvent = {
     command = function()
         play("saelspecial")
+        return true
     end,
 
     description = "Hmm. Mysterious.",
@@ -295,6 +331,7 @@ handlers.wipeSettings = {
         wipe(db.extraCharacters)
         wipe(TMDT_Options)
         tmdt.verifyOptions()
+        return true
     end,
 
     description = "Wipes out your TMDT settings and your custom alt database, if any.",
@@ -341,10 +378,18 @@ local function commandHandler(msg, EditBox)
         return false
     else
         if commandAlias[cmd] then
-            commandAlias[cmd].command(args)
+            local success, err = commandAlias[cmd].command(args)
+
+            if not success then
+                if commandAlias[cmd].hint then
+                    addonPrint("Usage: /tmdt %s %s", cmd, commandAlias[cmd].hint)
+                else
+                    addonPrint("Error trying to use /tmdt %s", cmd)
+                end
+            end
         else
             if msg ~= "" then
-                addonPrint("Unknown command \"".. msg .."\".")
+                addonPrint("Unknown command '%s'", msg)
                 return
             end
         end

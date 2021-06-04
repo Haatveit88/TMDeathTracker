@@ -10,6 +10,7 @@ function module.init(opt, database)
 end
 
 -- module locals
+local debugPrint = tmdt.debugPrint
 local characters = {
     saelaris = {
         alts = {
@@ -111,8 +112,8 @@ local function patchCharacterList(extraCharacters)
     for main, newChars in pairs(extraCharacters) do
         if characters[main] then
             for i, char in ipairs(newChars) do
-                if not tContains(characters[main], char) then
-                    tinsert(characters[main], char)
+                if not tContains(characters[main].alts, char) then
+                    tinsert(characters[main].alts, char)
                     if options.debug then
                         tinsert(patched, char)
                         counter = counter + 1
@@ -122,9 +123,9 @@ local function patchCharacterList(extraCharacters)
         end
     end
 
-    if options.debug then
-        print("patched " .. counter .. " extra characters")
-        table.concat(patched, ", ")
+    debugPrint("patched %i extra characters", counter)
+    if counter > 0 then
+        debugPrint(table.concat(patched, ", "))
     end
 end
 
