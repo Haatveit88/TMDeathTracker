@@ -9,16 +9,20 @@ function module.init(opt, database)
     options, db = opt, database
 end
 
--- module locals
+-- tmdt locals
 local debugPrint = tmdt.debugPrint
-local characters = {
+
+--------------------
+-- Character Data --
+--------------------
+local characterData = {
     saelaris = {
         alts = {
             "athall",
             "eleonar",
             "snikkels",
         },
-        soundFile = "wilhelm"
+        sound = "wilhelm"
     },
     avael = {
         alts = {
@@ -30,106 +34,42 @@ local characters = {
             "hederine",
             "lorasha",
         },
+        sound = "winxp_error"
+    },
+    horricee = {
+        alts = {
+            "ireni"
+        },
+        messages = {
+            "This is my first totally original and very funny message, it can include my current death <n>.",
+            "Avenge me for I am slain!",
+            "This is my first death ever! Wait what no shut up I haven't died <n> times!",
+            "Your god has fallen, fear not however for I shall arise again, this is the <ordinal> time after all!",
+        },
+        sound = "Horrice_death"
     }
 }
--- sanitize the characters table to make EVERYTHING lowercase, just in *case* I make a mistake during data entry.
+
+
+-- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
 do
-    local new = {}
-    for main, data in pairs(characters) do
-        new[main:lower()] = {
-            alts = {}
-        }
-
+    local bad = {}
+    for _, data in pairs(characterData) do
         for _, alt in pairs(data.alts) do
-            tinsert(new[main:lower()].alts, alt:lower())
-        end
-    end
-
-    characters = new
-end
-
--- paths
-local pre = "Interface\\AddOns\\TMDeathTracker\\Sounds\\"
-local pre_special = "Interface\\AddOns\\TMDeathTracker\\Sounds\\wilhelm_distant\\"
-local post = ".mp3"
-local testsound = "wilhelm"
-
--- sekrit speshul
-local saelspecial = {
-    "wilhelm_echo_left",
-    "wilhelm_echo_right",
-    "wilhelm_faded_left",
-    "wilhelm_faded_right",
-    "wilhelm_left",
-    "wilhelm_right",
-}
-
--- retrieves a sound by mian character name
-function tmdt.getCharacterSound(id)
-    if id == "test" then
-        return pre .. testsound .. post
-    elseif id == "saelspecial" then
-        return pre_special .. saelspecial[math.random(1, #saelspecial)] .. post
-    else
-        local main = tmdt.isTMCharacter(id)
-        if main then
-            if characters[main].soundFile then
-                return pre .. characters[main].soundFile .. post
-            else
-                return false, string.format("no soundFile: %s", main)
-            end
-        else
-            return false, string.format("not a TM character: %s. This is a strange error, and you should screenshot this message and tell Avael.", id)
-        end
-    end
-end
-
--- determines if <query> belongs to a known main TM member
-local function isTMCharacter(queryName)
-    queryName = queryName:lower()
-
-    -- try to match a character name
-    for main, data in pairs(characters) do
-        if queryName == main then
-            return main
-        else
-            for i, alt in ipairs(data.alts) do
-                if queryName == alt then
-                    return main
-                end
+            if alt:match("[A-Z]") then
+                tinsert(bad, alt)
             end
         end
     end
 
-    return false
-end
-
--- patch character list if required
-local function patchCharacterList(extraCharacters)
-    local counter = 0
-    local patched = {}
-
-    for main, newChars in pairs(extraCharacters) do
-        if characters[main] then
-            for i, char in ipairs(newChars) do
-                if not tContains(characters[main].alts, char) then
-                    tinsert(characters[main].alts, char)
-                    if options.debug then
-                        tinsert(patched, char)
-                        counter = counter + 1
-                    end
-                end
-            end
-        end
-    end
-
-    debugPrint("patched %i extra characters", counter)
-    if counter > 0 then
-        debugPrint(table.concat(patched, ", "))
+    if next(bad) then
+        C_Timer.After(1, function()
+            debugPrint("BAD! VERY BAD! There are characters with Capital Letters in the TMDT character database:")
+            debugPrint(table.concat(bad, ", "))
+        end)
     end
 end
 
--- make chars public for other uses
-tmdt.characters = characters
-tmdt.patchCharacterList = patchCharacterList
-tmdt.isTMCharacter = isTMCharacter
+
+-- ship it
+tmdt.characterData = characterData

@@ -31,6 +31,7 @@ local function verifyOptions()
         muted = false,
         self = true,
         debug = false,
+        mutespecial = false,
     }
 
     for k, v in pairs(opts) do
@@ -44,11 +45,11 @@ end
 local function verifyDB()
     local dbstruct = {
         extraCharacters = {},
-        deathcount = {},
+        deathcount = 0,
     }
 
     for k, v in pairs(dbstruct) do
-        if not db[k] then
+        if (not db[k]) or (type(db[k]) ~= type(v)) then
             db[k] = v
         end
     end
@@ -130,3 +131,4 @@ tmdt.frame = frame
 tmdt.options = options
 tmdt.db = db
 tmdt.verifyOptions = verifyOptions
+tmdt.guildName = "Twisted Minds"

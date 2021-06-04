@@ -20,6 +20,44 @@ local addonMsgPrefix = tmdt.addonMsgPrefix
 local eventHandlers = tmdt.eventHandlers
 local addonPrint = tmdt.addonPrint
 local debugPrint = tmdt.debugPrint
+local player = UnitName("player")
+
+-- helpers
+local function firstToUpper(str)
+    return (str:gsub("^%l", string.upper))
+end
+tmdt.firstToUpper = firstToUpper
+
+-- play a sound by "id" (usually character name)
+local function play(id)
+    local soundFile, errmsg = tmdt.getCharacterSound(id)
+
+    if soundFile then
+        PlaySoundFile(soundFile, options.channel)
+    else
+        debugPrint("getCharacterSound(%s) error: %s", id, errmsg)
+    end
+end
+tmdt.play = play
+
+-- makes every value in the table equal to its key
+local function enumify(t)
+    for k in pairs(t) do
+        t[k] = k
+    end
+
+    return t
+end
+
+-- table data
+local allowedInstanceTypes = {
+    none = false,
+    pvp = false,
+    party = true,
+    raid = true,
+    scenario = true,
+}
+enumify(allowedInstanceTypes)
 
 local addonMessageChannels = {
     PARTY = true,
@@ -32,10 +70,7 @@ local addonMessageChannels = {
     SAY = true,
     YELL = true,
 }
--- enum-i-fy addonMessageChannels
-for k, v in pairs(addonMessageChannels) do
-    addonMessageChannels[k] = k
-end
+enumify(addonMessageChannels)
 
 -- TMDT addonMessage types
 local TMDTEvent = {
@@ -43,44 +78,25 @@ local TMDTEvent = {
     MEMBER_DIED = true,
     OTHER_DIED = true,
 }
--- enum-i-fy eventTypes
-for k, v in pairs(TMDTEvent) do
-    TMDTEvent[k] = k
-end
-
-local player = UnitName("player")
-
--- helpers
-function tmdt.firstToUpper(str)
-    return (str:gsub("^%l", string.upper))
-end
-
-local function compoundMatch(str, matches)
-    for i, m in ipairs(matches) do
-        if str:match(m) then
-            return true
-        end
-    end
-
-    return false
-end
-
-function tmdt.play(id)
-    local soundFile, errmsg = tmdt.getCharacterSound(id)
-
-    if soundFile then
-        PlaySoundFile(soundFile, options.channel)
-    else
-        debugPrint("|cffaf0000debug:|r %s", errmsg)
-    end
-end
+enumify(TMDTEvent)
 
 -- addon msg stuff
 -- TMDT event handlers, these handle INCOMING events.
-local TMDTEventHandler = {}
-function TMDTEventHandler.MEMBER_DIED(name)
+local TMDTEventHandlers = {}
+function TMDTEventHandlers.MEMBER_DIED(name)
     tmdt.play(name)
-    debugPrint("recieved MEMBER_DIED event for: %s", name)
+end
+_G["TMDTTEST"] = TMDTEventHandlers -- !!!! FIXME: This should not be here !!!!
+
+function TMDTEventHandlers.SAEL_DIED(character, count)
+    if not options.mutespecial then
+        if (UnitInRaid(character) or UnitInParty(character)) then
+            -- do nothing, we're already grouped with Sael, don't want to double up his sounds
+        else
+            print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
+            play("saelspecial")
+        end
+    end
 end
 
 -- broadcasts a message
@@ -122,9 +138,10 @@ function eventHandlers.CHAT_MSG_ADDON(self, prefix, message, channel, sender, ta
 
         -- verify that it's a valid TMDT event
         local event = eventData[1]
-        if TMDTEventHandler[event] then
+        if TMDTEventHandlers[event] then
             -- call event with all payload packets as arguments
-            TMDTEventHandler[event](unpack(eventData, 2))
+            TMDTEventHandlers[event](unpack(eventData, 2))
+            debugPrint("dispatched %s event. Payload: %s", event, table.concat(eventData, ", ", 2))
         else
             debugPrint("|cffff0000TMDTError: Unhandled event: %s", tostring(event))
         end
@@ -133,14 +150,27 @@ end
 
 function eventHandlers.PLAYER_DEAD()
     local member = tmdt.isTMCharacter(player)
+    local guilded = IsInGuild() and GetGuildInfo("player") == tmdt.guildName
+    local instanced, instanceType = IsInInstance()
 
     if member then
         if member == "saelaris" then
-            broadcast{
-                event = TMDTEvent.SAEL_DIED,
-                message = "again",
-                channel = addonMessageChannels.GUILD,
-            }
+            if options.debug then
+                broadcast{
+                    event = TMDTEvent.SAEL_DIED,
+                    message = tostring(db.deathcount),
+                    channel = addonMessageChannels.WHISPER,
+                    target = "Addonbabe"
+                }
+            elseif guilded then
+                broadcast{
+                    event = TMDTEvent.SAEL_DIED,
+                    message = tostring(db.deathcount),
+                    channel = addonMessageChannels.GUILD,
+                }
+            else
+                -- do nothing
+            end
         end
 
         if options.debug then
@@ -150,12 +180,22 @@ function eventHandlers.PLAYER_DEAD()
                 channel = addonMessageChannels.WHISPER,
                 target = player
             }
-        else
+        elseif allowedInstanceTypes[instanceType] then
+            local msgChannel
+
+            if instanceType == allowedInstanceTypes.party then
+                msgChannel = addonMessageChannels.PARTY
+            elseif instanceType == allowedInstanceTypes.raid then
+                msgChannel = addonMessageChannels.RAID
+            end
+
             broadcast{
                 event = TMDTEvent.MEMBER_DIED,
                 message = member,
-                channel = addonMessageChannels.RAID,
+                channel = msgChannel,
             }
+        else
+            -- do nothing?
         end
     end
 end

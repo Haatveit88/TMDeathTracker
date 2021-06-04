@@ -15,6 +15,7 @@ local debugPrint = tmdt.debugPrint
 local play = tmdt.play
 local firstToUpper = tmdt.firstToUpper
 local commandAlias
+local player = UnitName("player")
 
 -- localise lua stuff
 local format = string.format
@@ -127,6 +128,17 @@ handlers.toggleMute = {
     end,
 
     description = "Toggles muting TMDT."
+}
+
+handlers.toggleMuteSpecial = {
+    command = function()
+        options.mutespecial = not options.mutespecial
+        local newState = options.mutespecial and ("|cffff0000" .. "Secret muted") or ("|cff00ff00" .. "Secret unmuted")
+        addonPrint(newState)
+        return true
+    end,
+
+    description = "Toggles muting the secret thing.. Rule #1 about the secret thing: You don't ask about the secret thing."
 }
 
 handlers.toggleSelf = {
@@ -302,7 +314,7 @@ handlers.queryName = {
 handlers.fakeDeathEvent = {
     command = function(args)
         if args[2] then
-            play(firstToUpper(args[2]))
+            play(args[2])
             debugPrint("|cffaf0000Fake death: %s", args[2])
             return true
         else
@@ -337,11 +349,32 @@ handlers.wipeSettings = {
     description = "Wipes out your TMDT settings and your custom alt database, if any.",
 }
 
+handlers.checkGuilded = {
+    command = function()
+
+        if IsInGuild() then
+            local guild = GetGuildInfo("player")
+            if guild == tmdt.guildName then
+                addonPrint("%s is a member of <%s>", player, tmdt.guildName)
+            else
+                addonPrint("%s is |cffff0000NOT|r a member of <%s>", player, tmdt.guildName)
+            end
+        else
+            addonPrint("%s is not in a guild.", player)
+        end
+
+        return true
+    end,
+
+    description = "Check whether the current character is detected as being a member of the <" .. tmdt.guildName .. "> guild.",
+}
+
 -- picks the appropriate handler based on keywords / aliases
 commandAlias = {
     mute = handlers.toggleMute,
     self = handlers.toggleSelf,
     channel = handlers.setGetChannel,
+    mutespecial = handlers.toggleMuteSpecial,
 
     -- character db stuff
     setalt = handlers.setAlt,
@@ -360,6 +393,7 @@ commandAlias = {
     fake = handlers.fakeDeathEvent,
     fakespecial = handlers.fakeSaelEvent,
     debug = handlers.toggleDebug,
+    guilded = handlers.checkGuilded,
 }
 
 -- handlers incoming slash cmd and dispatches to handler if valid alias match can be made
