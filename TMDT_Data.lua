@@ -44,7 +44,7 @@ characterData.horricee = {
         "This is my first totally original and very funny message, it can include my current death <n>.",
         "Avenge me for I am slain!",
         "This is my first death ever! Wait what no shut up I haven't died <n> times!",
-        "Your god has fallen, fear not however for I shall arise again, this is the <ord> time after all!",
+        "Your god has fallen, fear not however for I shall arise again, this is the <nth> time after all!",
     },
     sound = "Horrice_death"
 }
@@ -55,7 +55,7 @@ characterData.becks = {
         "becka",
     },
     messages = {
-        "I guess Becks will be LEAF-ing now...",
+        "I guess Becks will be LEAF-ing now, for the <nth> time",
         "Her BARK was worse than her bite. RIP Becks.",
         "Becks has gotten to the ROOT of the problem <n> times! Her health hit zero.",
         "Becks WOOD have lived <n> times if not for the tank.",
@@ -96,6 +96,11 @@ characterData.shaixira = {
     },
     messages = {},
     sound = "evory_death1"
+}
+characterData.makesha = {
+    alts = {},
+    messages = {},
+    sound = "You_serious",
 }
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
