@@ -86,7 +86,6 @@ local TMDTEventHandlers = {}
 function TMDTEventHandlers.MEMBER_DIED(name)
     tmdt.play(name)
 end
-_G["TMDTTEST"] = TMDTEventHandlers -- !!!! FIXME: This should not be here !!!!
 
 function TMDTEventHandlers.SAEL_DIED(character, count)
     if not options.mutespecial then
