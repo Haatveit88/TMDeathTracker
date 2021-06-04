@@ -15,41 +15,88 @@ local debugPrint = tmdt.debugPrint
 --------------------
 -- Character Data --
 --------------------
-local characterData = {
-    saelaris = {
-        alts = {
-            "athall",
-            "eleonar",
-            "snikkels",
-        },
-        sound = "wilhelm"
+local characterData = {}
+characterData.saelaris = {
+    alts = {
+        "athall",
+        "eleonar",
+        "snikkels",
     },
-    avael = {
-        alts = {
-            "addonbabe",
-            "airah",
-            "manitvex",
-            "ninriel",
-            "mythricia",
-            "hederine",
-            "lorasha",
-        },
-        sound = "winxp_error"
-    },
-    horricee = {
-        alts = {
-            "ireni"
-        },
-        messages = {
-            "This is my first totally original and very funny message, it can include my current death <n>.",
-            "Avenge me for I am slain!",
-            "This is my first death ever! Wait what no shut up I haven't died <n> times!",
-            "Your god has fallen, fear not however for I shall arise again, this is the <ordinal> time after all!",
-        },
-        sound = "Horrice_death"
-    }
+    sound = "wilhelm"
 }
-
+characterData.avael = {
+    alts = {
+        "addonbabe",
+        "airah",
+        "manitvex",
+        "ninriel",
+        "mythricia",
+        "hederine",
+        "lorasha",
+    },
+    sound = "winxp_error"
+}
+characterData.horricee = {
+    alts = {
+        "ireni",
+    },
+    messages = {
+        "This is my first totally original and very funny message, it can include my current death <n>.",
+        "Avenge me for I am slain!",
+        "This is my first death ever! Wait what no shut up I haven't died <n> times!",
+        "Your god has fallen, fear not however for I shall arise again, this is the <ord> time after all!",
+    },
+    sound = "Horrice_death"
+}
+characterData.becks = {
+    alts = {
+        "toasty",
+        "bex",
+        "becka",
+    },
+    messages = {
+        "I guess Becks will be LEAF-ing now...",
+        "Her BARK was worse than her bite. RIP Becks.",
+        "Becks has gotten to the ROOT of the problem <n> times! Her health hit zero.",
+        "Becks WOOD have lived <n> times if not for the tank.",
+    },
+    sound = "Becks_nooooo"
+}
+characterData.illasei = {
+    alts = {},
+    messages = {},
+    sound = "oopsie"
+}
+characterData.kimora = {
+    alts = {
+        "effsie",
+        "tailynn",
+        "zerenity",
+        "myseri",
+        "lizzi",
+        "kinney",
+        "elveera",
+        "bimini",
+    },
+    messages = {
+        "Kimora was brought to death <n> times",
+        "Kimora couldn't wake up <n> times",
+        "It's not been a phase, mom, for <n> times",
+    },
+    sound = "Kimora_Death_Jingle"
+}
+characterData.shaixira = {
+    alts = {
+        "evory",
+        "rheanwyn",
+        "selece",
+        "nerida",
+        "daranya",
+        "isdra",
+    },
+    messages = {},
+    sound = "evory_death1"
+}
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
 do

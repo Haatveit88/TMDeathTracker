@@ -51,11 +51,11 @@ end
 
 -- table data
 local allowedInstanceTypes = {
-    none = false,
+    none = true,
     pvp = false,
     party = true,
     raid = true,
-    scenario = true,
+    scenario = false,
 }
 enumify(allowedInstanceTypes)
 
@@ -151,6 +151,8 @@ end
 function eventHandlers.PLAYER_DEAD()
     local member = tmdt.isTMCharacter(player)
     local guilded = IsInGuild() and GetGuildInfo("player") == tmdt.guildName
+    local isParty = IsInGroup()
+    local isRaid = IsInRaid()
     local instanced, instanceType = IsInInstance()
 
     if member then
@@ -162,7 +164,7 @@ function eventHandlers.PLAYER_DEAD()
                     channel = addonMessageChannels.WHISPER,
                     target = "Addonbabe"
                 }
-            elseif guilded then
+            elseif guilded and allowedInstanceTypes[instanceType] then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
                     message = tostring(db.deathcount),
@@ -183,10 +185,13 @@ function eventHandlers.PLAYER_DEAD()
         elseif allowedInstanceTypes[instanceType] then
             local msgChannel
 
-            if instanceType == allowedInstanceTypes.party then
+            if isParty and not isRaid then
                 msgChannel = addonMessageChannels.PARTY
-            elseif instanceType == allowedInstanceTypes.raid then
+            elseif isParty and isRaid then
                 msgChannel = addonMessageChannels.RAID
+            else
+                -- bail, we're in an instance, but not in a party or raid, i.e. solo
+                return
             end
 
             broadcast{

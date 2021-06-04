@@ -195,9 +195,9 @@ handlers.getAlts = {
             local main = strtrim(args[2])
 
             if tmdt.isTMCharacter(main) then
-                if #tmdt.characters[main].alts > 0 then
-                    local alts = table.concat(tmdt.characters[main].alts, ", ")
-                    addonPrint("%s has %i alts: [%s]", firstToUpper(main), #tmdt.characters[main].alts, alts)
+                if #tmdt.characterData[main].alts > 0 then
+                    local alts = table.concat(tmdt.characterData[main].alts, ", ")
+                    addonPrint("%s has %i alts: [%s]", firstToUpper(main), #tmdt.characterData[main].alts, alts)
                 else
                     addonPrint("%s has no alts", firstToUpper(main))
                 end
