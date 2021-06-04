@@ -88,7 +88,7 @@ function TMDTEventHandlers.MEMBER_DIED(name)
 end
 
 function TMDTEventHandlers.SAEL_DIED(character, count)
-    if not options.mutespecial then
+    if (not options.mutespecial) and (not (character == "saelaris")) then
         if (UnitInRaid(character) or UnitInParty(character)) then
             -- do nothing, we're already grouped with Sael, don't want to double up his sounds
         else
@@ -159,14 +159,14 @@ function eventHandlers.PLAYER_DEAD()
             if options.debug then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
-                    message = tostring(db.deathcount),
+                    message = tostring(string.lower(player), db.deathcount),
                     channel = addonMessageChannels.WHISPER,
                     target = "Addonbabe"
                 }
             elseif guilded and allowedInstanceTypes[instanceType] then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
-                    message = tostring(db.deathcount),
+                    message = tostring(string.lower(player), db.deathcount),
                     channel = addonMessageChannels.GUILD,
                 }
             else
