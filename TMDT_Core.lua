@@ -20,7 +20,7 @@ local addonMsgPrefix = tmdt.addonMsgPrefix
 local eventHandlers = tmdt.eventHandlers
 local addonPrint = tmdt.addonPrint
 local debugPrint = tmdt.debugPrint
-local player = UnitName("player")
+local player = tmdt.player
 
 -- helpers
 local function firstToUpper(str)
@@ -88,7 +88,7 @@ function TMDTEventHandlers.MEMBER_DIED(name)
 end
 
 function TMDTEventHandlers.SAEL_DIED(character, count)
-    if (tmdt.isTMCharacter(character) == "saelaris") or (UnitInRaid(character) or UnitInParty(character)) then
+    if (tmdt.isTMCharacter(player) == "saelaris") or (UnitInRaid(character) or UnitInParty(character)) then
         -- don't do anything if we are in party with or identify as saelaris
         return
     elseif not options.mutespecial or not options.muted then

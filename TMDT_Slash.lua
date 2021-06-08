@@ -15,7 +15,7 @@ local debugPrint = tmdt.debugPrint
 local play = tmdt.play
 local firstToUpper = tmdt.firstToUpper
 local commandAlias
-local player = UnitName("player")
+local player = tmdt.player
 
 -- localise lua stuff
 local format = string.format

@@ -102,7 +102,7 @@ function eventHandlers.ADDON_LOADED(self, ...)
             tmdt.patchCharacterList(db.extraCharacters)
         end
 
-        local identity = tmdt.isTMCharacter(UnitName("player"))
+        local identity = tmdt.isTMCharacter(tmdt.player)
         addonPrint("Loaded. You are %s%s|r.", identity and "|cff00aa00" or "|cffaa0000", identity and tmdt.firstToUpper(identity) or "not a recognized TM member")
     end
 end
