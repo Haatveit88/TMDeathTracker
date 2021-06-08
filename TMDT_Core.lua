@@ -21,6 +21,7 @@ local eventHandlers = tmdt.eventHandlers
 local addonPrint = tmdt.addonPrint
 local debugPrint = tmdt.debugPrint
 local player = tmdt.player
+local TMDTEventHandlers = {}
 
 -- helpers
 local function firstToUpper(str)
@@ -81,26 +82,6 @@ local TMDTEvent = {
 enumify(TMDTEvent)
 
 -- addon msg stuff
--- TMDT event handlers, these handle INCOMING events.
-local TMDTEventHandlers = {}
-function TMDTEventHandlers.MEMBER_DIED(name)
-    if not options.muteall then
-        tmdt.play(name)
-    end
-end
-
-function TMDTEventHandlers.SAEL_DIED(character, count)
-    local playerRoot = tmdt.isTMCharacter(player)
-
-    if (playerRoot == "saelaris") or UnitInRaid(character) or UnitInParty(character) then
-        -- don't do anything if we are in party with or identify as saelaris
-        return
-    elseif not (options.mutespecial or options.muteall) then
-        print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
-        play("saelspecial")
-    end
-end
-
 -- broadcasts a message
 local function broadcast(data)
     local event, msg, channel, target = data.event, data.message, data.channel, data.target
@@ -125,6 +106,25 @@ local function broadcast(data)
         C_ChatInfo.SendAddonMessage(addonMsgPrefix, payload, channel, target)
     else
         addonPrint("|cffff0000Error:|r Tried to use invalid AddonCommsChannel '%s'", channel)
+    end
+end
+
+-- handle TMDT events, these are for INCOMING events.
+function TMDTEventHandlers.MEMBER_DIED(name)
+    if not options.muteall then
+        tmdt.play(name)
+    end
+end
+
+function TMDTEventHandlers.SAEL_DIED(character, count)
+    local playerRoot = tmdt.isTMCharacter(player)
+
+    if (playerRoot == "saelaris") or UnitInRaid(character) or UnitInParty(character) then
+        -- don't do anything if we are in party with or identify as saelaris
+        return
+    elseif not (options.mutespecial or options.muteall) then
+        print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
+        play("saelspecial")
     end
 end
 

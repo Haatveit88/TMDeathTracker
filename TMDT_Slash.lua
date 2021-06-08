@@ -16,6 +16,8 @@ local play = tmdt.play
 local firstToUpper = tmdt.firstToUpper
 local commandAlias
 local player = tmdt.player
+local handlers = {}
+
 
 -- localise lua stuff
 local format = string.format
@@ -48,7 +50,6 @@ end
 SLASH_TMDT1 = "/tmdt"
 
 -- holds all the final command handlers
-local handlers = {}
 handlers.help = {
     command = function()
         addonPrint("Valid commands for TMDT are;")
