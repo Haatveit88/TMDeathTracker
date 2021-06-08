@@ -84,14 +84,18 @@ enumify(TMDTEvent)
 -- TMDT event handlers, these handle INCOMING events.
 local TMDTEventHandlers = {}
 function TMDTEventHandlers.MEMBER_DIED(name)
-    tmdt.play(name)
+    if not options.muteall then
+        tmdt.play(name)
+    end
 end
 
 function TMDTEventHandlers.SAEL_DIED(character, count)
-    if (tmdt.isTMCharacter(player) == "saelaris") or (UnitInRaid(character) or UnitInParty(character)) then
+    local playerRoot = tmdt.isTMCharacter(player)
+
+    if (playerRoot == "saelaris") or UnitInRaid(character) or UnitInParty(character) then
         -- don't do anything if we are in party with or identify as saelaris
         return
-    elseif not options.mutespecial or not options.muted then
+    elseif not (options.mutespecial or options.muteall) then
         print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
         play("saelspecial")
     end
@@ -158,14 +162,14 @@ function eventHandlers.PLAYER_DEAD()
             if options.debug then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
-                    message = tostring(string.lower(player), db.deathcount),
+                    message = string.lower(player),
                     channel = addonMessageChannels.WHISPER,
                     target = "Addonbabe"
                 }
             elseif guilded and allowedInstanceTypes[instanceType] then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
-                    message = tostring(string.lower(player), db.deathcount),
+                    message = string.lower(player),
                     channel = addonMessageChannels.GUILD,
                 }
             else

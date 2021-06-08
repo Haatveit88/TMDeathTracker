@@ -121,8 +121,8 @@ handlers.testPlay = {
 
 handlers.toggleMute = {
     command = function()
-        options.muted = not options.muted
-        local newState = options.muted and ("|cffff0000" .. "Muted") or ("|cff00ff00" .. "Unmuted")
+        options.muteall = not options.muteall
+        local newState = options.muteall and ("|cffff0000" .. "TMDT Muted") or ("|cff00ff00" .. "TMDT Unmuted")
         addonPrint(newState)
         return true
     end,
@@ -133,7 +133,7 @@ handlers.toggleMute = {
 handlers.toggleMuteSpecial = {
     command = function()
         options.mutespecial = not options.mutespecial
-        local newState = options.mutespecial and ("|cffff0000" .. "Secret muted") or ("|cff00ff00" .. "Secret unmuted")
+        local newState = options.mutespecial and ("|cffff0000" .. "Secret Muted") or ("|cff00ff00" .. "Secret Unmuted")
         addonPrint(newState)
         return true
     end,
@@ -143,9 +143,9 @@ handlers.toggleMuteSpecial = {
 
 handlers.toggleSelf = {
     command = function()
-        options.self = not options.self
-        local newState = options.self and ("|cff00ff00" .. "Enabled") or ("|cffff0000" .. "Disabled")
-        addonPrint("play self is %s", newState)
+        options.muteself = not options.muteself
+        local newState = options.muteself and ("|cffff0000" .. "Muted") or ("|cff00ff00" .. "Unmuted")
+        addonPrint("Play own death is %s", newState)
         return true
     end,
 
@@ -372,7 +372,7 @@ handlers.checkGuilded = {
 -- picks the appropriate handler based on keywords / aliases
 commandAlias = {
     mute = handlers.toggleMute,
-    self = handlers.toggleSelf,
+    muteself = handlers.toggleSelf,
     channel = handlers.setGetChannel,
     mutespecial = handlers.toggleMuteSpecial,
 

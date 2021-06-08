@@ -28,8 +28,8 @@ local colors = {
 local function verifyOptions()
     local opts = {
         channel = "Master",
-        muted = false,
-        self = true,
+        muteall = false,
+        muteself = false,
         debug = false,
         mutespecial = false,
     }

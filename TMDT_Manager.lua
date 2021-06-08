@@ -1,4 +1,4 @@
--- contains known characters and their related data
+-- manages stuff and things, or something, I don't know anymore
 local addonName, tmdt = ...
 local module = {}
 tmdt.modules.manager = module
