@@ -88,13 +88,12 @@ function TMDTEventHandlers.MEMBER_DIED(name)
 end
 
 function TMDTEventHandlers.SAEL_DIED(character, count)
-    if (not options.mutespecial) and (not (character == "saelaris")) then
-        if (UnitInRaid(character) or UnitInParty(character)) then
-            -- do nothing, we're already grouped with Sael, don't want to double up his sounds
-        else
-            print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
-            play("saelspecial")
-        end
+    if (tmdt.isTMCharacter(character) == "saelaris") or (UnitInRaid(character) or UnitInParty(character)) then
+        -- don't do anything if we are in party with or identify as saelaris
+        return
+    elseif not options.mutespecial or not options.muted then
+        print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
+        play("saelspecial")
     end
 end
 
