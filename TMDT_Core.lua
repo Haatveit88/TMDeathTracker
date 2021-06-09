@@ -22,6 +22,7 @@ local addonPrint = tmdt.addonPrint
 local debugPrint = tmdt.debugPrint
 local player = tmdt.player
 local TMDTEventHandlers = {}
+local deathEventCooldown = false
 
 -- helpers
 local function firstToUpper(str)
@@ -155,6 +156,14 @@ function eventHandlers.CHAT_MSG_ADDON(self, prefix, message, channel, sender, ta
 end
 
 function eventHandlers.PLAYER_DEAD()
+    if deathEventCooldown then
+        -- bail immediately, we already triggered this event very recently (bug, or player dying again REALLY FAST!)
+        return
+    else
+        deathEventCooldown = true
+        C_Timer.After(5, function() deathEventCooldown = false end)
+    end
+
     local member = tmdt.isTMCharacter(player)
     local guilded = IsInGuild() and GetGuildInfo("player") == tmdt.guildName
     local isParty = IsInGroup()
@@ -163,14 +172,7 @@ function eventHandlers.PLAYER_DEAD()
 
     if member then
         if member == "saelaris" then
-            if options.debug then
-                broadcast{
-                    event = TMDTEvent.SAEL_DIED,
-                    message = string.lower(player),
-                    channel = addonMessageChannels.WHISPER,
-                    target = "Addonbabe"
-                }
-            elseif guilded and allowedInstanceTypes[instanceType] then
+            if guilded and allowedInstanceTypes[instanceType] then
                 broadcast{
                     event = TMDTEvent.SAEL_DIED,
                     message = string.lower(player),
@@ -181,14 +183,7 @@ function eventHandlers.PLAYER_DEAD()
             end
         end
 
-        if options.debug then
-            broadcast{
-                event = TMDTEvent.MEMBER_DIED,
-                message = member,
-                channel = addonMessageChannels.WHISPER,
-                target = player
-            }
-        elseif allowedInstanceTypes[instanceType] then
+        if allowedInstanceTypes[instanceType] then
             local msgChannel
 
             if isParty and not isRaid then
