@@ -120,15 +120,71 @@ handlers.testPlay = {
     description = "Plays a triple wilhelm scream."
 }
 
-handlers.toggleMute = {
+handlers.listAll = {
     command = function()
-        options.muteall = not options.muteall
-        local newState = options.muteall and ("|cffff0000" .. "TMDT Muted") or ("|cff00ff00" .. "TMDT Unmuted")
-        addonPrint(newState)
+        addonPrint("Currently known TM characters:")
+        for main, data in pairs(tmdt.characterData) do
+            local lst = firstToUpper(main)
+            if next(data.alts) then
+                lst = lst .. " |cffa9a9a9(" .. table.concat(data.alts, ", ") .. ")|r"
+            end
+
+            print(lst)
+        end
+
         return true
     end,
 
-    description = "Toggles muting TMDT."
+    description = "List all currently known TM characters.",
+}
+
+handlers.toggleMute = {
+    command = function(args)
+        if args[2] and type(args[2]) == "string" then
+            local character = strtrim(args[2])
+            local member = tmdt.isTMCharacter(character)
+
+            if member then
+                if db.mutedCharacters[member] then
+                    db.mutedCharacters[member] = nil
+                else
+                    db.mutedCharacters[member] = true
+                end
+
+                local newState = db.mutedCharacters[member] and ("|cffff0000" .. "Muted") or ("|cff00ff00" .. "Unmuted")
+                addonPrint("%s is now %s.", firstToUpper(member), newState)
+                return true
+            else
+                addonPrint("No known TM character called %s.", firstToUpper(character))
+                return false
+            end
+        else
+            options.muteall = not options.muteall
+            local newState = options.muteall and ("|cffff0000" .. "TMDT Muted") or ("|cff00ff00" .. "TMDT Unmuted")
+            addonPrint(newState)
+            return true
+        end
+    end,
+
+    description = "Toggles muting TMDT completely, or if character name provided, mutes that specific character.",
+    hint = "<main or alt>"
+}
+
+handlers.listMuted = {
+    command = function()
+        if next(db.mutedCharacters) then
+            addonPrint("Muted characters:")
+            for character in pairs(db.mutedCharacters) do
+                print(firstToUpper(character))
+            end
+        else
+            addonPrint("There are no muted characters.")
+        end
+
+        return true
+    end,
+
+    description = "Lists all currently muted (main) characters."
 }
 
 handlers.toggleMuteSpecial = {
@@ -376,8 +432,13 @@ commandAlias = {
     muteself = handlers.toggleSelf,
     channel = handlers.setGetChannel,
     mutespecial = handlers.toggleMuteSpecial,
+    muted = handlers.listMuted,
+    mutelist = handlers.listMuted,
+    listmuted = handlers.listMuted,
 
     -- character db stuff
+    list = handlers.listAll,
+    characters = handlers.listAll,
     setalt = handlers.setAlt,
     addalt = handlers.setAlt,
     alts = handlers.getAlts,

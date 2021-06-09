@@ -112,7 +112,11 @@ end
 -- handle TMDT events, these are for INCOMING events.
 function TMDTEventHandlers.MEMBER_DIED(name)
     if not options.muteall then
-        tmdt.play(name)
+        if not db.mutedCharacters[name] then
+            tmdt.play(name)
+        else
+            debugPrint("Skipped muted character effect: %s", name)
+        end
     end
 end
 

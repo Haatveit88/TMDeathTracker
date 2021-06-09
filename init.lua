@@ -46,6 +46,7 @@ local function verifyDB()
     local dbstruct = {
         extraCharacters = {},
         deathcount = 0,
+        mutedCharacters = {}
     }
 
     for k, v in pairs(dbstruct) do
