@@ -138,6 +138,13 @@ characterData.talkui = {
     messages = {},
     sound = "gimli-laugh"
 }
+characterData.rugnarson = {
+    alts = {
+        "Puna"
+    },
+    messages = {},
+    sound = "nani"
+}
 
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
