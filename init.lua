@@ -32,6 +32,7 @@ local function verifyOptions()
         muteself = false,
         debug = false,
         mutespecial = false,
+        timeout = 5,
     }
 
     for k, v in pairs(opts) do

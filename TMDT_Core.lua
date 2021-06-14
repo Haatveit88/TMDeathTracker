@@ -160,8 +160,9 @@ function eventHandlers.PLAYER_DEAD()
         -- bail immediately, we already triggered this event very recently (bug, or player dying again REALLY FAST!)
         return
     else
+        db.deathcount = db.deathcount + 1
         deathEventCooldown = true
-        C_Timer.After(5, function() deathEventCooldown = false end)
+        C_Timer.After(options.timeout, function() deathEventCooldown = false end)
     end
 
     local member = tmdt.isTMCharacter(player)
