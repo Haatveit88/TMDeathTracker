@@ -131,6 +131,13 @@ characterData.neshali = {
     messages = {},
     sound = "FFXIV_sloppy"
 }
+characterData.talkui = {
+    alts = {
+        "kimrog"
+    },
+    messages = {},
+    sound = "gimli-laugh"
+}
 
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
