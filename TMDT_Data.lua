@@ -102,6 +102,22 @@ characterData.makesha = {
     messages = {},
     sound = "You_serious",
 }
+characterData.yvai = {
+    alts = {},
+    messages = {},
+    sound = "Yvai_death",
+}
+characterData.tyfannia = {
+    alts = {},
+    messages = {},
+    sound = "Tyfannia_death_sound"
+}
+characterData.pingwing = {
+    alts = {},
+    messages = {},
+    sound = "pingwing"
+}
+
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
 do
