@@ -46,7 +46,7 @@ characterData.horricee = {
         "This is my first death ever! Wait what no shut up I haven't died <n> times!",
         "Your god has fallen, fear not however for I shall arise again, this is the <nth> time after all!",
     },
-    sound = "Horrice_death"
+    sound = "Horricee_death"
 }
 characterData.becks = {
     alts = {
