@@ -117,6 +117,20 @@ characterData.pingwing = {
     messages = {},
     sound = "pingwing"
 }
+characterData.tharri = {
+    alts = {
+        "peritaph"
+    },
+    messages = {},
+    sound = "cleese_ping"
+}
+characterData.neshali = {
+    alts = {
+        "nesharil"
+    },
+    messages = {},
+    sound = "FFXIV_sloppy"
+}
 
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
