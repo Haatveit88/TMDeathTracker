@@ -10,6 +10,8 @@ function module.init(opt, database, addonframe)
 
     frame:RegisterEvent("CHAT_MSG_ADDON")
     frame:RegisterEvent("PLAYER_DEAD")
+    frame:RegisterEvent("PLAYER_UNGHOST")
+    frame:RegisterEvent("PLAYER_ALIVE")
 end
 
 -- lua locals
@@ -22,7 +24,7 @@ local addonPrint = tmdt.addonPrint
 local debugPrint = tmdt.debugPrint
 local player = tmdt.player
 local TMDTEventHandlers = {}
-local deathEventCooldown = false
+local deathEventBlocked = false
 
 -- helpers
 local function firstToUpper(str)
@@ -128,7 +130,9 @@ function TMDTEventHandlers.SAEL_DIED(character, count)
         -- don't do anything if we are in party with or identify as saelaris
         return
     elseif not (options.mutespecial or options.muteall) then
-        print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
+        if options.debug then
+            print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
+        end
         play("saelspecial")
     end
 end
@@ -148,21 +152,32 @@ function eventHandlers.CHAT_MSG_ADDON(self, prefix, message, channel, sender, ta
         if TMDTEventHandlers[event] then
             -- call event with all payload packets as arguments
             TMDTEventHandlers[event](unpack(eventData, 2))
-            debugPrint("dispatched %s event. Payload: %s", event, table.concat(eventData, ", ", 2))
+            debugPrint("Received %s event. Payload: %s", event, table.concat(eventData, ", ", 2))
         else
-            debugPrint("|cffff0000TMDTError: Unhandled event: %s", tostring(event))
+            debugPrint("|cffff0000TMDTError: Received unhandled event: %s", tostring(event))
         end
     end
 end
 
+-- either of these events happening will unblock PLAYER_DEAD events
+function eventHandlers.PLAYER_UNGHOST()
+    debugPrint("PLAYER_DEAD unblocked!")
+    deathEventBlocked = false
+end
+function eventHandlers.PLAYER_ALIVE()
+    debugPrint("PLAYER_DEAD unblocked!")
+    deathEventBlocked = false
+end
+
 function eventHandlers.PLAYER_DEAD()
-    if deathEventCooldown then
+    if deathEventBlocked then
         -- bail immediately, we already triggered this event very recently (bug, or player dying again REALLY FAST!)
+        debugPrint("DIED TOO FAST!")
         return
     else
         db.deathcount = db.deathcount + 1
-        deathEventCooldown = true
-        C_Timer.After(options.timeout, function() deathEventCooldown = false end)
+        deathEventBlocked = true
+        debugPrint("PLAYER_DEAD blocked!")
     end
 
     local member = tmdt.isTMCharacter(player)
