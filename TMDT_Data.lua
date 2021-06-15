@@ -140,16 +140,16 @@ characterData.talkui = {
 }
 characterData.rugnarson = {
     alts = {
-        "Puna"
+        "puna"
     },
     messages = {},
     sound = "nani"
 }
 characterData.akaani = {
     alts = {
-        "Delthea",
-        "Yunara",
-        "Kallistra"
+        "delthea",
+        "yunara",
+        "kallistra"
     },
     messages = {},
     sound = "RamDeath"
