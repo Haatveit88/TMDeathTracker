@@ -145,7 +145,15 @@ characterData.rugnarson = {
     messages = {},
     sound = "nani"
 }
-
+characterData.akaani = {
+    alts = {
+        "Delthea",
+        "Yunara",
+        "Kallistra"
+    },
+    messages = {},
+    sound = "RamDeath"
+}
 
 -- check the characters table to make sure ALL NAMES are lowercase, and scream in your face if some aren't.
 do
