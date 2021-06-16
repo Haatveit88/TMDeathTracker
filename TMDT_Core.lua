@@ -175,9 +175,12 @@ function eventHandlers.PLAYER_DEAD()
         debugPrint("DIED TOO FAST!")
         return
     else
-        db.deathcount = db.deathcount + 1
-        deathEventBlocked = true
-        debugPrint("PLAYER_DEAD blocked!")
+        -- delay the blocking for a second to prevent weird issues such as spirit of redemption "ressing" you on the same frame that you "died", thus disabling blocking...
+        C_Timer.After(1, function()
+            db.deathcount = db.deathcount + 1
+            debugPrint("PLAYER_DEAD blocked!")
+            deathEventBlocked = true
+        end)
     end
 
     local member = tmdt.isTMCharacter(player)
