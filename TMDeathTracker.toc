@@ -1,7 +1,7 @@
 ## Interface: 20501
 ## Title: |cff00FF00TM |cffff00ffDeath Tracker|r
 ## Author: Avael
-## Version: 0.0.1
+## Version: 0.1.2
 ## Notes: & Twisted &
 ## SavedVariables: TMDT_Options, TMDT_DB
 
