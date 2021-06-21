@@ -130,9 +130,7 @@ function TMDTEventHandlers.SAEL_DIED(character, count)
         -- don't do anything if we are in party with or identify as saelaris
         return
     elseif not (options.mutespecial or options.muteall) then
-        if options.debug then
-            print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
-        end
+        print(format("|cff8f8f8fSomewhere, somehow, |cffC79C6ESaelaris|r died. Again."))
         play("saelspecial")
     end
 end
