@@ -136,7 +136,7 @@ characterData.talkui = {
         "kimrog"
     },
     messages = {},
-    sound = "gimli-laugh"
+    sound = "FelOrcWoundCritC"
 }
 characterData.rugnarson = {
     alts = {
